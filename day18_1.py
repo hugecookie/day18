@@ -5,60 +5,98 @@ class graph:
 
 
 def print_graph(g):
-    print('	', end='')
+    print(' ', end=' ')
     for v in range(g.SIZE):
-        print("%9s" % storeAry[v][0], end=' ')
+        print(cityAry[v], end=' ')
     print()
     for row in range(g.SIZE):
-        print("%9s" % storeAry[row][0], end=' ')
+        print(cityAry[row], end=' ')
         for col in range(g.SIZE):
-            print("%8d" % g.graph[row][col], end=' ')
+            print("%2d" % g.graph[row][col], end=' ')
         print()
     print()
 
 
-storeAry = [['GS25', 30], ['CU', 60], ['Seven11', 10], ['MiniStop', 90], ['Emart24', 40]]
-GS25, CU, Seven11, MiniStop, Emart24 = 0, 1, 2, 3, 4
+def find_vertex(g, vertx):
+    stack = []
+    visited_ary = []
+
+    current = 0
+    stack.append(current)
+    visited_ary.append(current)
+
+    while len(stack) != 0:
+        next = None
+        for vertex in range(gSize):
+            if g.graph[current][vertex] != 0:
+                if vertex in visited_ary:
+                    pass
+                else:
+                    next = vertex
+                    break
+
+        if next is not None:
+            current = next
+            stack.append(current)
+            visited_ary.append(current)
+        else:
+            current = stack.pop()
+
+    if vertx in visited_ary:
+        return True
+    else:
+        return False
 
 
-gSize = 5
+cityAry = ['서울', '뉴욕', '런던', '북경', '방콕', '파리']
+seoul, newyork, london, beijing, bangkok, paris = 0, 1, 2, 3, 4, 5
+
+
+gSize = 6
 G1 = graph(gSize)
-G1.graph[GS25][CU] = 1; G1.graph[GS25][Seven11] = 1
-G1.graph[CU][GS25] = 1; G1.graph[CU][Seven11] = 1; G1.graph[CU][MiniStop] = 1
-G1.graph[Seven11][GS25] = 1; G1.graph[Seven11][CU] = 1; G1.graph[Seven11][MiniStop] = 1
-G1.graph[MiniStop][Seven11] = 1; G1.graph[MiniStop][CU] = 1; G1.graph[MiniStop][Emart24] = 1
-G1.graph[Emart24][MiniStop] = 1
+G1.graph[seoul][newyork] = 80; G1.graph[seoul][beijing] = 10
+G1.graph[newyork][seoul] = 80; G1.graph[newyork][beijing] = 40; G1.graph[newyork][bangkok] = 70
+G1.graph[london][bangkok] = 30; G1.graph[london][paris] = 60
+G1.graph[beijing][seoul] = 10; G1.graph[beijing][newyork] = 40; G1.graph[beijing][bangkok] = 50
+G1.graph[bangkok][newyork] = 70; G1.graph[bangkok][beijing] = 50; G1.graph[bangkok][london] = 30; G1.graph[bangkok][paris] = 20
+G1.graph[paris][bangkok] = 20; G1.graph[paris][london] = 60;
 
-print('## convenience store ##')
+print('## all of graph ##')
 print_graph(G1)
 
-stack = []
-visitedAry = []
+# 가중치 간선 목록
+edgeAry = []
+for i in range(gSize):
+    for k in range(gSize):
+        if G1.graph[i][k] != 0:
+            edgeAry.append([G1.graph[i][k], i, k])
 
-current = 0
-maxStore = current
-maxCount = storeAry[current][1]
-stack.append(current)
-visitedAry.append(current)
+from operator import itemgetter
 
-while len(stack) is not 0:
-    next = None
-    for vertex in range(gSize):
-        if G1.graph[current][vertex] is 1:
-            if vertex in visitedAry:  # 방문한 적이 있는 편의점이면 탈락
-                pass
-            else:  # 방문한 적이 없는 편의점이면 다음 편의점으로 지정
-                next = vertex
-                break
+edgeAry = sorted(edgeAry, key=itemgetter(0), reverse=False)
 
-    if next is not None:  # 방문할 다음 편의점이 있는 경우
-        current = next
-        stack.append(current)
-        visitedAry.append(current)
-        if storeAry[current][1] > maxCount:
-            maxCount = storeAry[current][1]
-            maxStore = current
-    else:  # 방문할 다음 편의점이 없는 경우
-        current = stack.pop()
+newAry = []
+for i in range(0, len(edgeAry), 2):
+    newAry.append(edgeAry[i])
 
-print('허니버터칩 최대 보유 편의점(개수) -->', storeAry[maxStore][0], '(', storeAry[maxStore][1], ')')
+index = 0
+while gSize - 1 < len(newAry):  # 간선의 개수가 '정점 개수-1'일 때까지 반복
+    start = newAry[index][1]
+    end = newAry[index][2]
+    saveCost = newAry[index][0]
+
+    G1.graph[start][end] = 0
+    G1.graph[end][start] = 0
+
+    startYN = find_vertex(G1, start)
+    endYN = find_vertex(G1, end)
+
+    if startYN and endYN:
+        del (newAry[index])
+    else:
+        G1.graph[start][end] = saveCost
+        G1.graph[end][start] = saveCost
+        index += 1
+
+print('## effective graph ##')
+print_graph(G1)
